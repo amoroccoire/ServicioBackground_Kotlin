@@ -1,5 +1,6 @@
 package com.example.serviciobackground
 
+import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -59,8 +60,9 @@ class AudioService : Service() {
         return Notification.Builder(this, channelId)
             .setContentTitle("Reproductor de Audio")
             .setContentText(message)
-            .setSmallIcon(R.drawable.headphones) // Cambia al ícono deseado
-            .addAction(R.drawable.stop, "Detener", stopPendingIntent)
+            .setSmallIcon(R.drawable.ic_launcher_foreground) // Usa un ícono válido
+            .addAction(android.R.drawable.ic_media_pause, "Detener", stopPendingIntent)
+            .setOngoing(true)
             .build()
     }
 
