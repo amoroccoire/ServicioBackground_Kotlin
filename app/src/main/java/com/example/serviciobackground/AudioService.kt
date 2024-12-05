@@ -1,10 +1,8 @@
 package com.example.serviciobackground
 
-import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
-import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
 import android.media.MediaPlayer
@@ -15,6 +13,8 @@ class AudioService : Service() {
 
     private lateinit var mediaPlayer: MediaPlayer
     private val channelId = "audio_service_channel"
+    private var isForeground = false
+    private lateinit var message: String
 
     override fun onCreate() {
         super.onCreate()
@@ -27,6 +27,8 @@ class AudioService : Service() {
             "PLAY" -> startPlayback()
             "PAUSE" -> pausePlayback()
             "STOP" -> stopPlayback()
+            "SHOW_NOTIFICATION" -> showNotification()
+            "HIDE_NOTIFICATION" -> hideNotification()
         }
         return START_NOT_STICKY
     }
@@ -34,35 +36,44 @@ class AudioService : Service() {
     private fun startPlayback() {
         if (!mediaPlayer.isPlaying) {
             mediaPlayer.start()
-            startForeground(1, createNotification("Reproduciendo audio"))
         }
+        message = "Reproduciendo musica"
     }
 
     private fun pausePlayback() {
         if (mediaPlayer.isPlaying) {
             mediaPlayer.pause()
-            stopForeground(false)
         }
+        message = "Musica pausada"
     }
 
     private fun stopPlayback() {
         if (mediaPlayer.isPlaying) {
             mediaPlayer.stop()
-            stopForeground(true)
-            stopSelf()
+        }
+        stopForeground(STOP_FOREGROUND_REMOVE)
+        stopSelf()
+    }
+
+    private fun showNotification() {
+        if (!isForeground) {
+            startForeground(1, createNotification(message))
+            isForeground = true
+        }
+    }
+
+    private fun hideNotification() {
+        if (isForeground) {
+            stopForeground(STOP_FOREGROUND_REMOVE)
+            isForeground = false
         }
     }
 
     private fun createNotification(message: String): Notification {
-        val stopIntent = Intent(this, AudioService::class.java).apply { action = "STOP" }
-        val stopPendingIntent = PendingIntent.getService(this, 0, stopIntent, PendingIntent.FLAG_IMMUTABLE)
-
         return Notification.Builder(this, channelId)
             .setContentTitle("Reproductor de Audio")
             .setContentText(message)
-            .setSmallIcon(R.drawable.ic_launcher_foreground) // Usa un ícono válido
-            .addAction(android.R.drawable.ic_media_pause, "Detener", stopPendingIntent)
-            .setOngoing(true)
+            .setSmallIcon(R.drawable.headphones)
             .build()
     }
 
@@ -78,7 +89,7 @@ class AudioService : Service() {
         }
     }
 
-    override fun onBind(p0: Intent?): IBinder? = null
+    override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onDestroy() {
         super.onDestroy()
@@ -86,5 +97,4 @@ class AudioService : Service() {
             mediaPlayer.release()
         }
     }
-
 }

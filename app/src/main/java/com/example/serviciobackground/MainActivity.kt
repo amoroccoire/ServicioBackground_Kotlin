@@ -10,13 +10,6 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        /*enableEdgeToEdge()
-        setContentView(R.layout.activity_main)
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
-        }*/
 
         val playBtn = findViewById<Button>(R.id.play_button)
         val pauseBtn = findViewById<Button>(R.id.pause_button)
@@ -44,9 +37,34 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    override fun onStart() {
+        super.onStart()
+        val intent = Intent(this, AudioService::class.java).apply {
+            action = "HIDE_NOTIFICATION"
+        }
+        startService(intent)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        val intent = Intent(this, AudioService::class.java).apply {
+            action = "HIDE_NOTIFICATION"
+        }
+        startService(intent)
+    }
+
+    override fun onStop() {
+        super.onStop()
+        // Mostrar notificación cuando la app está en segundo plano
+        val intent = Intent(this, AudioService::class.java).apply {
+            action = "SHOW_NOTIFICATION"
+        }
+        startService(intent)
+    }
+
     override fun onDestroy() {
         super.onDestroy()
-        // Enviar un comando opcional para detener el servicio si se desea finalizar la app
+        // Detener el servicio al cerrar la app
         val intent = Intent(this, AudioService::class.java).apply {
             action = "STOP"
         }
